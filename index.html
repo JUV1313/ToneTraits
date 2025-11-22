@@ -1,6 +1,247 @@
 import React, { useState, useEffect } from 'react';
 import { Globe, Play, RotateCcw, Instagram, Facebook, MessageCircle } from 'lucide-react';
 
+// 5 questions per dimension, total 25
+const QUESTIONS = [
+  // Mellow (M) - 5 questions
+  { id: 1, dimension: 'M', en: 'I enjoy soft rock music (e.g., Eric Clapton, Norah Jones)', he: 'אני נהנה ממוזיקת רוק רכה (למשל אריק קלפטון, נורה ג\'ונס)' },
+  { id: 2, dimension: 'M', en: 'I like R&B music (e.g., Alicia Keys, John Legend)', he: 'אני אוהב מוזיקת R&B (למשל אלישה קיז, ג\'ון לג\'נד)' },
+  { id: 3, dimension: 'M', en: 'I enjoy folk music (e.g., Bob Dylan, Joni Mitchell)', he: 'אני נהנה ממוזיקת פולק (למשל בוב דילן, ג\'וני מיטשל)' },
+  { id: 4, dimension: 'M', en: 'I like jazz music (e.g., Miles Davis, Ella Fitzgerald)', he: 'אני אוהב מוזיקת ג\'אז (למשל מיילס דייויס, אלה פיצג\'רלד)' },
+  { id: 5, dimension: 'M', en: 'I enjoy soul music (e.g., Stevie Wonder, Aretha Franklin)', he: 'אני אוהב מוזיקת סול (למשל סטיבי וונדר, ארתה פרנקלין)' },
+  
+  // Unpretentious (U) - 5 questions
+  { id: 6, dimension: 'U', en: 'I enjoy country music (e.g., Johnny Cash, Dolly Parton)', he: 'אני נהנה ממוזיקת קאנטרי (למשל ג\'וני קאש, דולי פרטון)' },
+  { id: 7, dimension: 'U', en: 'I like classic rock (e.g., The Beatles, Led Zeppelin)', he: 'אני אוהב רוק קלאסי (למשל הביטלס, לד זפלין)' },
+  { id: 8, dimension: 'U', en: 'I enjoy oldies music (e.g., Elvis Presley, The Beach Boys)', he: 'אני נהנה ממוזיקה ישנה (למשל אלביס פרסלי, הביץ\' בויז)' },
+  { id: 9, dimension: 'U', en: 'I like traditional folk (e.g., Woody Guthrie, Pete Seeger)', he: 'אני אוהב פולק מסורתי (למשל וודי גאת\'רי, פיט סיגר)' },
+  { id: 10, dimension: 'U', en: 'I enjoy gospel music (e.g., Mahalia Jackson, Kirk Franklin)', he: 'אני נהנה ממוזיקת גוספל (למשל מהליה ג\'קסון, קירק פרנקלין)' },
+  
+  // Sophisticated (S) - 5 questions
+  { id: 11, dimension: 'S', en: 'I enjoy classical music (e.g., Bach, Mozart, Beethoven)', he: 'אני נהנה ממוזיקה קלאסית (למשל באך, מוצרט, בטהובן)' },
+  { id: 12, dimension: 'S', en: 'I like opera (e.g., Puccini, Verdi, Wagner)', he: 'אני אוהב אופרה (למשל פוצ\'יני, ורדי, וגנר)' },
+  { id: 13, dimension: 'S', en: 'I enjoy avant-garde music (e.g., John Cage, Steve Reich)', he: 'אני נהנה ממוזיקת אוונגרד (למשל ג\'ון קייג\', סטיב רייך)' },
+  { id: 14, dimension: 'S', en: 'I like world music (e.g., Ravi Shankar, Fela Kuti)', he: 'אני אוהב מוזיקת עולם (למשל רבי שנקר, פלה קוטי)' },
+  { id: 15, dimension: 'S', en: 'I enjoy complex jazz (e.g., John Coltrane, Ornette Coleman)', he: 'אני נהנה מג\'אז מורכב (למשל ג\'ון קולטריין, ארנט קולמן)' },
+  
+  // Intense (I) - 5 questions
+  { id: 16, dimension: 'I', en: 'I enjoy heavy metal music (e.g., Black Sabbath, Iron Maiden)', he: 'אני נהנה ממוזיקת הבי מטאל (למשל בלאק סבת\', איירון מיידן)' },
+  { id: 17, dimension: 'I', en: 'I like punk rock (e.g., The Ramones, Sex Pistols)', he: 'אני אוהב פאנק רוק (למשל הרמונס, סקס פיסטולס)' },
+  { id: 18, dimension: 'I', en: 'I enjoy hard rock (e.g., AC/DC, Guns N\' Roses)', he: 'אני נהנה מהארד רוק (למשל AC/DC, גאנס אנד רוזס)' },
+  { id: 19, dimension: 'I', en: 'I like alternative rock (e.g., Nirvana, Pearl Jam)', he: 'אני אוהב רוק אלטרנטיבי (למשל נירוונה, פרל ג\'אם)' },
+  { id: 20, dimension: 'I', en: 'I enjoy music with powerful, driving rhythms', he: 'אני נהנה ממוזיקה עם קצבים חזקים ודוחפים' },
+  
+  // Contemporary (C) - 5 questions
+  { id: 21, dimension: 'C', en: 'I enjoy mainstream pop music (e.g., Taylor Swift, Ariana Grande)', he: 'אני נהנה מפופ מיינסטרים (למשל טיילור סוויפט, אריאנה גרנדה)' },
+  { id: 22, dimension: 'C', en: 'I like hip-hop/rap music (e.g., Drake, Kendrick Lamar)', he: 'אני אוהב היפ-הופ/ראפ (למשל דרייק, קנדריק למאר)' },
+  { id: 23, dimension: 'C', en: 'I enjoy electronic dance music (e.g., Calvin Harris, David Guetta)', he: 'אני נהנה ממוזיקה אלקטרונית לריקוד (למשל קלווין האריס, דיוויד גטה)' },
+  { id: 24, dimension: 'C', en: 'I like current radio hits and chart-toppers', he: 'אני אוהב להיטי רדיו נוכחיים ומובילי מצעד הפזמונים' },
+  { id: 25, dimension: 'C', en: 'I enjoy upbeat, energetic music for dancing', he: 'אני נהנה ממוזיקה אופטימית ואנרגטית לריקוד' }
+];
+
+const TEXT = {
+  appName: 'ToneTraits',
+  explanation: {
+    en: 'ToneTraits is a short psychological quiz that reveals how your music preferences reflect your Big Five personality traits.',
+    he: 'טון טרייטס הוא שאלון פסיכולוגי קצר, שבוחן כיצד העדפות מוזיקליות משקפות את תכונות האישיות שלך לפי מודל חמשת הגדולים.'
+  },
+  theoreticalCredit: {
+    en: 'This quiz is based on the MUSIC model developed by Rentfrow & Gosling (2003), published in the Journal of Personality and Social Psychology.',
+    he: 'השאלון מבוסס על המודל התיאורטי MUSIC שפיתחו Rentfrow & Gosling בשנת 2003 במחקר שפורסם בכתב העת Journal of Personality and Social Psychology.'
+  },
+  timeEstimate: {
+    en: 'Takes ~5 minutes to complete',
+    he: 'לוקח כ 5 דקות להשלמה'
+  },
+  startButton: {
+    en: 'Start',
+    he: 'התחל'
+  },
+  languageToggle: {
+    en: 'עברית',
+    he: 'English'
+  },
+  progress: {
+    en: 'Question',
+    he: 'שאלה'
+  },
+  of: {
+    en: 'of',
+    he: 'מתוך'
+  },
+  ratingLabels: {
+    1: {
+      en: 'Strongly disagree',
+      he: 'לא מסכים בכלל'
+    },
+    7: {
+      en: 'Strongly agree',
+      he: 'מסכים מאוד'
+    }
+  },
+  results: {
+    en: 'Your Musical Personality',
+    he: 'האישיות המוזיקלית שלך'
+  },
+  yourType: {
+    en: 'Your dominant musical type is:',
+    he: 'הסוג המוזיקלי השולט שלך הוא:'
+  },
+  restartButton: {
+    en: 'Take Again',
+    he: 'בצע שוב'
+  },
+  shareInstagram: {
+    en: 'Share to Instagram Story',
+    he: 'שתף בסטורי אינסטגרם'
+  },
+  shareFacebook: {
+    en: 'Share on Facebook',
+    he: 'שתף בפייסבוק'
+  },
+  shareWhatsApp: {
+    en: 'Send via WhatsApp',
+    he: 'שלח בוואטסאפ'
+  }
+};
+
+const PERSONALITY_DESCRIPTIONS = {
+  M: {
+    name: { en: 'Mellow', he: 'רגוע' },
+    description: {
+      en: 'You appreciate emotionally rich, reflective music that creates intimate listening experiences.',
+      he: 'אתה מעריך מוזיקה עשירה רגשית ומהורהרת שיוצרת חוויות האזנה אינטימיות.'
+    },
+    bigFiveLink: {
+      en: 'This musical preference is linked to high Openness to Experience and Agreeableness, you likely value emotional depth, empathy, and artistic expression.',
+      he: 'העדפה מוזיקלית זו קשורה לפתיחות גבוהה לחוויות ולנעימות, סביר להניח שאתה מעריך עומק רגשי, אמפתיה וביטוי אמנותי.'
+    },
+    color: 'from-blue-500 to-cyan-500'
+  },
+  U: {
+    name: { en: 'Unpretentious', he: 'ללא יומרות' },
+    description: {
+      en: 'You prefer authentic, straightforward music with clear melodies and honest emotional expression.',
+      he: 'אתה מעדיף מוזיקה אותנטית וישירה עם לחנים ברורים וביטוי רגשי כנה.'
+    },
+    bigFiveLink: {
+      en: 'This preference reflects high Conscientiousness and lower Openness, you value tradition, reliability, and genuine human connection.',
+      he: 'העדפה זו משקפת מצפוניות גבוהה ופתיחות נמוכה יותר, אתה מעריך מסורת, אמינות וקשר אנושי אמיתי.'
+    },
+    color: 'from-green-500 to-emerald-500'
+  },
+  S: {
+    name: { en: 'Sophisticated', he: 'מתוחכם' },
+    description: {
+      en: 'You enjoy complex, intellectually challenging music that requires active listening and cultural knowledge.',
+      he: 'אתה נהנה ממוזיקה מורכבת ומאתגרת אינטלקטואלית שדורשת הקשבה פעילה וידע תרבותי.'
+    },
+    bigFiveLink: {
+      en: 'This reflects very high Openness to Experience, you seek novel experiences, appreciate complexity, and value intellectual and artistic pursuits.',
+      he: 'זה משקף פתיחות גבוהה מאוד לחוויות, אתה מחפש חוויות חדשות, מעריך מורכבות ומוקיר עיסוקים אינטלקטואליים ואמנותיים.'
+    },
+    color: 'from-purple-500 to-violet-500'
+  },
+  I: {
+    name: { en: 'Intense', he: 'אינטנסיבי' },
+    description: {
+      en: 'You are drawn to powerful, energetic music that expresses strong emotions and creates cathartic experiences.',
+      he: 'אתה נמשך למוזיקה חזקה ואנרגטית שמבטאת רגשות עזים ויוצרת חוויות קתרטיות.'
+    },
+    bigFiveLink: {
+      en: 'This preference is associated with high Extraversion and Openness, you likely seek intense experiences, enjoy being energized, and are comfortable with emotional expression.',
+      he: 'העדפה זו קשורה לאקסטרוברטיות ופתיחות גבוהות, סביר להניח שאתה מחפש חוויות אינטנסיביות, נהנה להיות מטעון אנרגיה ונוח לך עם ביטוי רגשי.'
+    },
+    color: 'from-red-500 to-orange-500'
+  },
+  C: {
+    name: { en: 'Contemporary', he: 'עכשווי' },
+    description: {
+      en: 'You stay current with musical trends and enjoy popular, accessible music that connects you with others.',
+      he: 'אתה עוקב אחר מגמות מוזיקליות ונהנה ממוזיקה פופולרית ונגישה שמחברת אותך לאחרים.'
+    },
+    bigFiveLink: {
+      en: 'This reflects moderate Openness and high Extraversion, you value social connection, staying current with trends, and music as a shared social experience.',
+      he: 'זה משקף פתיחות בינונית ואקסטרוברטיות גבוהה, אתה מעריך קשר חברתי, עדכניות עם מגמות ומוזיקה כחוויה חברתית משותפת.'
+    },
+    color: 'from-yellow-500 to-amber-500'
+  }
+};
+
+const shuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+// Custom ToneTraits Logo Component
+const ToneTraitsLogo = ({ size = 1 }) => (
+  <div className="flex flex-col items-center gap-4" style={{ transform: `scale(${size})` }}>
+    <div className="relative">
+      <svg width="100" height="100" viewBox="0 0 120 120" className="drop-shadow-lg">
+        <defs>
+          <linearGradient id="headGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#3B82F6" />
+            <stop offset="100%" stopColor="#8B5CF6" />
+          </linearGradient>
+        </defs>
+        <path 
+          d="M30 50 C30 25, 45 10, 60 10 C75 10, 90 25, 90 50 L90 80 C90 90, 85 95, 80 95 L40 95 C35 95, 30 90, 30 80 Z" 
+          fill="url(#headGradient)" 
+        />
+        <circle cx="60" cy="45" r="20" fill="rgba(255,255,255,0.1)" />
+        <g transform="translate(52, 35)" fill="white">
+          <circle cx="6" cy="18" r="4" />
+          <rect x="10" y="6" width="2" height="16" />
+          <path d="M12 6 Q18 4, 18 9 L18 11 Q12 13, 12 8 Z" />
+        </g>
+      </svg>
+    </div>
+    <div className="text-4xl font-bold text-gray-800" style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
+      ToneTraits
+    </div>
+  </div>
+);
+
+const calculateResults = (responses) => {
+  const scores = { M: [], U: [], S: [], I: [], C: [] };
+
+  Object.entries(responses).forEach(([questionId, rating]) => {
+    const question = QUESTIONS.find((q) => q.id === Number(questionId));
+    if (question && typeof rating === 'number') {
+      scores[question.dimension].push(rating);
+    }
+  });
+
+  const averages = {};
+  Object.entries(scores).forEach(([dimension, ratings]) => {
+    if (ratings.length > 0) {
+      const sum = ratings.reduce((acc, val) => acc + val, 0);
+      averages[dimension] = sum / ratings.length;
+    }
+  });
+
+  const entries = Object.entries(averages);
+  if (entries.length === 0) {
+    return { averages: {}, dominantDimension: null };
+  }
+
+  let dominantDimension = entries[0][0];
+  let maxAverage = entries[0][1];
+
+  entries.forEach(([dimension, avg]) => {
+    if (avg > maxAverage) {
+      maxAverage = avg;
+      dominantDimension = dimension;
+    }
+  });
+
+  return { averages, dominantDimension };
+};
+
 const ToneTraitsApp = () => {
   const [language, setLanguage] = useState('he');
   const [currentScreen, setCurrentScreen] = useState('welcome');
@@ -8,257 +249,21 @@ const ToneTraitsApp = () => {
   const [responses, setResponses] = useState({});
   const [shuffledQuestions, setShuffledQuestions] = useState([]);
 
-  // 5 questions per dimension, total 25
-  const questions = [
-    // Mellow (M) - 5 questions
-    { id: 1, dimension: 'M', en: 'I enjoy soft rock music (e.g., Eric Clapton, Norah Jones)', he: 'אני נהנה ממוזיקת רוק רכה (למשל אריק קלפטון, נורה ג\'ונס)' },
-    { id: 2, dimension: 'M', en: 'I like R&B music (e.g., Alicia Keys, John Legend)', he: 'אני אוהב מוזיקת R&B (למשל אלישה קיז, ג\'ון לג\'נד)' },
-    { id: 3, dimension: 'M', en: 'I enjoy folk music (e.g., Bob Dylan, Joni Mitchell)', he: 'אני נהנה ממוזיקת פולק (למשל בוב דילן, ג\'וני מיטשל)' },
-    { id: 4, dimension: 'M', en: 'I like jazz music (e.g., Miles Davis, Ella Fitzgerald)', he: 'אני אוהב מוזיקת ג\'אז (למשל מיילס דייויס, אלה פיצג\'רלד)' },
-    { id: 5, dimension: 'M', en: 'I enjoy soul music (e.g., Stevie Wonder, Aretha Franklin)', he: 'אני אוהב מוזיקת סול (למשל סטיבי וונדר, ארתה פרנקלין)' },
-    
-    // Unpretentious (U) - 5 questions
-    { id: 6, dimension: 'U', en: 'I enjoy country music (e.g., Johnny Cash, Dolly Parton)', he: 'אני נהנה ממוזיקת קאנטרי (למשל ג\'וני קאש, דולי פרטון)' },
-    { id: 7, dimension: 'U', en: 'I like classic rock (e.g., The Beatles, Led Zeppelin)', he: 'אני אוהב רוק קלאסי (למשל הביטלס, לד זפלין)' },
-    { id: 8, dimension: 'U', en: 'I enjoy oldies music (e.g., Elvis Presley, The Beach Boys)', he: 'אני נהנה ממוזיקה ישנה (למשל אלביס פרסלי, הביץ\' בויז)' },
-    { id: 9, dimension: 'U', en: 'I like traditional folk (e.g., Woody Guthrie, Pete Seeger)', he: 'אני אוהב פולק מסורתי (למשל וודי גאת\'רי, פיט סיגר)' },
-    { id: 10, dimension: 'U', en: 'I enjoy gospel music (e.g., Mahalia Jackson, Kirk Franklin)', he: 'אני נהנה ממוזיקת גוספל (למשל מהליה ג\'קסון, קירק פרנקלין)' },
-    
-    // Sophisticated (S) - 5 questions
-    { id: 11, dimension: 'S', en: 'I enjoy classical music (e.g., Bach, Mozart, Beethoven)', he: 'אני נהנה ממוזיקה קלאסית (למשל באך, מוצרט, בטהובן)' },
-    { id: 12, dimension: 'S', en: 'I like opera (e.g., Puccini, Verdi, Wagner)', he: 'אני אוהב אופרה (למשל פוצ\'יני, ורדי, וגנר)' },
-    { id: 13, dimension: 'S', en: 'I enjoy avant-garde music (e.g., John Cage, Steve Reich)', he: 'אני נהנה ממוזיקת אוונגרד (למשל ג\'ון קייג\', סטיב רייך)' },
-    { id: 14, dimension: 'S', en: 'I like world music (e.g., Ravi Shankar, Fela Kuti)', he: 'אני אוהב מוזיקת עולם (למשל רבי שנקר, פלה קוטי)' },
-    { id: 15, dimension: 'S', en: 'I enjoy complex jazz (e.g., John Coltrane, Ornette Coleman)', he: 'אני נהנה מג\'אז מורכב (למשל ג\'ון קולטריין, ארנט קולמן)' },
-    
-    // Intense (I) - 5 questions
-    { id: 16, dimension: 'I', en: 'I enjoy heavy metal music (e.g., Black Sabbath, Iron Maiden)', he: 'אני נהנה ממוזיקת הבי מטאל (למשל בלאק סבת\', איירון מיידן)' },
-    { id: 17, dimension: 'I', en: 'I like punk rock (e.g., The Ramones, Sex Pistols)', he: 'אני אוהב פאנק רוק (למשל הרמונס, סקס פיסטולס)' },
-    { id: 18, dimension: 'I', en: 'I enjoy hard rock (e.g., AC/DC, Guns N\' Roses)', he: 'אני נהנה מהארד רוק (למשל AC/DC, גאנס אנד רוזס)' },
-    { id: 19, dimension: 'I', en: 'I like alternative rock (e.g., Nirvana, Pearl Jam)', he: 'אני אוהב רוק אלטרנטיבי (למשל נירוונה, פרל ג\'אם)' },
-    { id: 20, dimension: 'I', en: 'I enjoy music with powerful, driving rhythms', he: 'אני נהנה ממוזיקה עם קצבים חזקים ודוחפים' },
-    
-    // Contemporary (C) - 5 questions
-    { id: 21, dimension: 'C', en: 'I enjoy mainstream pop music (e.g., Taylor Swift, Ariana Grande)', he: 'אני נהנה מפופ מיינסטרים (למשל טיילור סוויפט, אריאנה גרנדה)' },
-    { id: 22, dimension: 'C', en: 'I like hip-hop/rap music (e.g., Drake, Kendrick Lamar)', he: 'אני אוהב היפ-הופ/ראפ (למשל דרייק, קנדריק למאר)' },
-    { id: 23, dimension: 'C', en: 'I enjoy electronic dance music (e.g., Calvin Harris, David Guetta)', he: 'אני נהנה ממוזיקה אלקטרונית לריקוד (למשל קלווין האריס, דיוויד גטה)' },
-    { id: 24, dimension: 'C', en: 'I like current radio hits and chart-toppers', he: 'אני אוהב להיטי רדיו נוכחיים ומובילי מצעד הפזמונים' },
-    { id: 25, dimension: 'C', en: 'I enjoy upbeat, energetic music for dancing', he: 'אני נהנה ממוזיקה אופטימית ואנרגטית לריקוד' }
-  ];
-
-  const shuffleArray = (array) => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
-
   useEffect(() => {
-    setShuffledQuestions(shuffleArray(questions));
+    setShuffledQuestions(shuffleArray(QUESTIONS));
   }, []);
-
-  const text = {
-    appName: 'ToneTraits',
-    explanation: {
-      en: 'ToneTraits is a short psychological quiz that reveals how your music preferences reflect your Big Five personality traits.',
-      he: 'טון טרייטס הוא שאלון פסיכולוגי קצר, שבוחן כיצד העדפות מוזיקליות משקפות את תכונות האישיות שלך לפי מודל חמשת הגדולים.'
-    },
-    theoreticalCredit: {
-      en: 'This quiz is based on the MUSIC model developed by Rentfrow & Gosling (2003), published in the Journal of Personality and Social Psychology.',
-      he: 'השאלון מבוסס על המודל התיאורטי MUSIC שפיתחו Rentfrow & Gosling בשנת 2003 במחקר שפורסם בכתב העת *Journal of Personality and Social Psychology*.'
-    },
-    timeEstimate: {
-      en: 'Takes ~5 minutes to complete',
-      he: 'לוקח כ-5 דקות להשלמה'
-    },
-    startButton: {
-      en: 'Start',
-      he: 'התחל'
-    },
-    languageToggle: {
-      en: 'עברית',
-      he: 'English'
-    },
-    progress: {
-      en: 'Question',
-      he: 'שאלה'
-    },
-    of: {
-      en: 'of',
-      he: 'מתוך'
-    },
-    ratingLabels: {
-      1: {
-        en: 'Strongly disagree',
-        he: 'לא מסכים בכלל'
-      },
-      7: {
-        en: 'Strongly agree',
-        he: 'מסכים מאוד'
-      }
-    },
-    results: {
-      en: 'Your Musical Personality',
-      he: 'האישיות המוזיקלית שלך'
-    },
-    yourType: {
-      en: 'Your dominant musical type is:',
-      he: 'הסוג המוזיקלי השולט שלך הוא:'
-    },
-    restartButton: {
-      en: 'Take Again',
-      he: 'בצע שוב'
-    },
-    shareInstagram: {
-      en: 'Share to Instagram Story',
-      he: 'שתף בסטורי אינסטגרם'
-    },
-    shareFacebook: {
-      en: 'Share on Facebook',
-      he: 'שתף בפייסבוק'
-    },
-    shareWhatsApp: {
-      en: 'Send via WhatsApp',
-      he: 'שלח בוואטסאפ'
-    }
-  };
-
-  const personalityDescriptions = {
-    M: {
-      name: { en: 'Mellow', he: 'רגוע' },
-      description: {
-        en: 'You appreciate emotionally rich, reflective music that creates intimate listening experiences.',
-        he: 'אתה מעריך מוזיקה עשירה רגשית ומהורהרת שיוצרת חוויות האזנה אינטימיות.'
-      },
-      bigFiveLink: {
-        en: 'This musical preference is linked to high Openness to Experience and Agreeableness - you likely value emotional depth, empathy, and artistic expression.',
-        he: 'העדפה מוזיקלית זו קשורה לפתיחות גבוהה לחוויות ולנעימות - סביר להניח שאתה מעריך עומק רגשי, אמפתיה וביטוי אמנותי.'
-      },
-      color: 'from-blue-500 to-cyan-500'
-    },
-    U: {
-      name: { en: 'Unpretentious', he: 'ללא יומרות' },
-      description: {
-        en: 'You prefer authentic, straightforward music with clear melodies and honest emotional expression.',
-        he: 'אתה מעדיף מוזיקה אותנטית וישירה עם לחנים ברורים וביטוי רגשי כנה.'
-      },
-      bigFiveLink: {
-        en: 'This preference reflects high Conscientiousness and lower Openness - you value tradition, reliability, and genuine human connection.',
-        he: 'העדפה זו משקפת מצפוניות גבוהה ופתיחות נמוכה יותר - אתה מעריך מסורת, אמינות וקשר אנושי אמיתי.'
-      },
-      color: 'from-green-500 to-emerald-500'
-    },
-    S: {
-      name: { en: 'Sophisticated', he: 'מתוחכם' },
-      description: {
-        en: 'You enjoy complex, intellectually challenging music that requires active listening and cultural knowledge.',
-        he: 'אתה נהנה ממוזיקה מורכבת ומאתגרת אינטלקטואלית שדורשת הקשבה פעילה וידע תרבותי.'
-      },
-      bigFiveLink: {
-        en: 'This reflects very high Openness to Experience - you seek novel experiences, appreciate complexity, and value intellectual and artistic pursuits.',
-        he: 'זה משקף פתיחות גבוהה מאוד לחוויות - אתה מחפש חוויות חדשות, מעריך מורכבות ומוקיר עיסוקים אינטלקטואליים ואמנותיים.'
-      },
-      color: 'from-purple-500 to-violet-500'
-    },
-    I: {
-      name: { en: 'Intense', he: 'אינטנסיבי' },
-      description: {
-        en: 'You are drawn to powerful, energetic music that expresses strong emotions and creates cathartic experiences.',
-        he: 'אתה נמשך למוזיקה חזקה ואנרגטית שמבטאת רגשות עזים ויוצרת חוויות קתרטיות.'
-      },
-      bigFiveLink: {
-        en: 'This preference is associated with high Extraversion and Openness - you likely seek intense experiences, enjoy being energized, and are comfortable with emotional expression.',
-        he: 'העדפה זו קשורה לאקסטרוברטיות ופתיחות גבוהות - סביר להניח שאתה מחפש חוויות אינטנסיביות, נהנה להיות מטעון אנרגיה ונוח לך עם ביטוי רגשי.'
-      },
-      color: 'from-red-500 to-orange-500'
-    },
-    C: {
-      name: { en: 'Contemporary', he: 'עכשווי' },
-      description: {
-        en: 'You stay current with musical trends and enjoy popular, accessible music that connects you with others.',
-        he: 'אתה עוקב אחר מגמות מוזיקליות ונהנה ממוזיקה פופולרית ונגישה שמחברת אותך לאחרים.'
-      },
-      bigFiveLink: {
-        en: 'This reflects moderate Openness and high Extraversion - you value social connection, staying current with trends, and music as a shared social experience.',
-        he: 'זה משקף פתיחות בינונית ואקסטרוברטיות גבוהה - אתה מעריך קשר חברתי, עדכניות עם מגמות ומוזיקה כחוויה חברתית משותפת.'
-      },
-      color: 'from-yellow-500 to-amber-500'
-    }
-  };
-
-  // Custom ToneTraits Logo Component
-  const ToneTraitsLogo = ({ size = 1 }) => (
-    <div className="flex flex-col items-center gap-4" style={{ transform: `scale(${size})` }}>
-      {/* Custom logo: head silhouette with music note in brain */}
-      <div className="relative">
-        <svg width="100" height="100" viewBox="0 0 120 120" className="drop-shadow-lg">
-          <defs>
-            <linearGradient id="headGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#3B82F6" />
-              <stop offset="100%" stopColor="#8B5CF6" />
-            </linearGradient>
-          </defs>
-          
-          {/* Head silhouette */}
-          <path 
-            d="M30 50 C30 25, 45 10, 60 10 C75 10, 90 25, 90 50 L90 80 C90 90, 85 95, 80 95 L40 95 C35 95, 30 90, 30 80 Z" 
-            fill="url(#headGradient)" 
-          />
-          
-          {/* Brain area circle (lighter) */}
-          <circle cx="60" cy="45" r="20" fill="rgba(255,255,255,0.1)" />
-          
-          {/* Music note in brain area */}
-          <g transform="translate(52, 35)" fill="white">
-            <circle cx="6" cy="18" r="4" />
-            <rect x="10" y="6" width="2" height="16" />
-            <path d="M12 6 Q18 4, 18 9 L18 11 Q12 13, 12 8 Z" />
-          </g>
-        </svg>
-      </div>
-      
-      {/* App name */}
-      <div className="text-4xl font-bold text-gray-800" style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
-        ToneTraits
-      </div>
-    </div>
-  );
-
-  const calculateResults = () => {
-    const scores = { M: [], U: [], S: [], I: [], C: [] };
-    
-    Object.entries(responses).forEach(([questionId, rating]) => {
-      const question = questions.find(q => q.id === parseInt(questionId));
-      if (question) {
-        scores[question.dimension].push(rating);
-      }
-    });
-
-    const averages = {};
-    Object.entries(scores).forEach(([dimension, ratings]) => {
-      if (ratings.length > 0) {
-        averages[dimension] = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
-      }
-    });
-
-    const dominantDimension = Object.entries(averages).reduce((a, b) => 
-      averages[a[0]] > averages[b[0]] ? a : b
-    )[0];
-
-    return { averages, dominantDimension };
-  };
 
   const handleAnswer = (rating) => {
     const currentQuestionData = shuffledQuestions[currentQuestion];
-    setResponses(prev => ({
+    if (!currentQuestionData) return;
+
+    setResponses((prev) => ({
       ...prev,
       [currentQuestionData.id]: rating
     }));
 
     if (currentQuestion < shuffledQuestions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
+      setCurrentQuestion((prev) => prev + 1);
     } else {
       setCurrentScreen('results');
     }
@@ -268,26 +273,41 @@ const ToneTraitsApp = () => {
     setCurrentScreen('welcome');
     setCurrentQuestion(0);
     setResponses({});
-    setShuffledQuestions(shuffleArray(questions));
+    setShuffledQuestions(shuffleArray(QUESTIONS));
   };
 
   const shareResults = (platform) => {
-    const results = calculateResults();
-    const personality = personalityDescriptions[results.dominantDimension];
-    const shareText = `גיליתי את הסוג המוזיקלי שלי ב-ToneTraits: ${personality.name[language]}! 🎵`;
-    
-    switch(platform) {
-      case 'instagram':
-        navigator.clipboard.writeText(shareText);
-        alert(language === 'he' ? 'הטקסט הועתק! פתח אינסטגרם וצור סטורי חדש' : 'Text copied! Open Instagram and create a new story');
+    const results = calculateResults(responses);
+    if (!results.dominantDimension) {
+      const msg = language === 'he' ? 'אין מספיק נתונים להצגה, נסה שוב.' : 'Not enough data to share, try again.';
+      alert(msg);
+      return;
+    }
+
+    const personality = PERSONALITY_DESCRIPTIONS[results.dominantDimension];
+    const shareText = `גיליתי את הסוג המוזיקלי שלי ב ToneTraits: ${personality.name[language]}! 🎵`;
+
+    switch (platform) {
+      case 'instagram': {
+        if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(shareText);
+          alert(language === 'he' ? 'הטקסט הועתק, פתח אינסטגרם וצור סטורי חדש' : 'Text copied, open Instagram and create a new story');
+        } else {
+          window.prompt(language === 'he' ? 'העתק ידנית:' : 'Copy manually:', shareText);
+        }
         break;
-      case 'facebook':
+      }
+      case 'facebook': {
         const fbUrl = `https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(shareText)}`;
-        window.open(fbUrl, '_blank');
+        window.open(fbUrl, '_blank', 'noopener,noreferrer');
         break;
-      case 'whatsapp':
+      }
+      case 'whatsapp': {
         const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-        window.open(waUrl, '_blank');
+        window.open(waUrl, '_blank', 'noopener,noreferrer');
+        break;
+      }
+      default:
         break;
     }
   };
@@ -300,7 +320,6 @@ const ToneTraitsApp = () => {
         style={{ fontFamily: 'Assistant, -apple-system, BlinkMacSystemFont, sans-serif' }}
         dir={language === 'he' ? 'rtl' : 'ltr'}
       >
-        {/* Language Toggle */}
         <div className={`absolute top-6 ${language === 'he' ? 'left-6' : 'right-6'} z-10`}>
           <button
             onClick={() => setLanguage(language === 'en' ? 'he' : 'en')}
@@ -308,42 +327,34 @@ const ToneTraitsApp = () => {
           >
             <Globe size={18} />
             <span className="font-medium" style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
-              {text.languageToggle[language]}
+              {TEXT.languageToggle[language]}
             </span>
           </button>
         </div>
 
-        {/* Main Content */}
         <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
           <div className="max-w-2xl mx-auto text-center space-y-8">
-            
-            {/* Logo */}
             <div className="mb-8 transform transition-transform duration-500 hover:scale-105 flex justify-center">
               <ToneTraitsLogo size={1.2} />
             </div>
 
-            {/* Theoretical Explanation */}
             <div className="max-w-xl mx-auto text-center">
               <p className="text-lg text-gray-600 leading-relaxed font-medium" style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
-                {text.explanation[language]}
+                {TEXT.explanation[language]}
               </p>
-              
-              {/* Theoretical Credit */}
               <p className="text-sm text-gray-500 leading-relaxed font-normal mt-4 text-center" 
-                 style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
-                {text.theoreticalCredit[language]}
+                style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
+                {TEXT.theoreticalCredit[language]}
               </p>
             </div>
 
-            {/* Time Estimate */}
             <div className="flex items-center gap-2 text-gray-500 justify-center">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
               <span className="text-sm font-medium" style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
-                {text.timeEstimate[language]}
+                {TEXT.timeEstimate[language]}
               </span>
             </div>
 
-            {/* Start Button */}
             <div className="pt-4 flex justify-center">
               <button
                 onClick={() => setCurrentScreen('quiz')}
@@ -351,17 +362,16 @@ const ToneTraitsApp = () => {
                 style={{ fontFamily: 'Assistant, Arial, sans-serif' }}
               >
                 <Play size={24} className="group-hover:translate-x-1 transition-transform duration-300" />
-                <span>{text.startButton[language]}</span>
+                <span>{TEXT.startButton[language]}</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Subtle Background Elements */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-200/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-3/4 left-1/3 w-48 h-48 bg-pink-200/20 rounded-full blur-3xl animate-pulse delay-500"></div>
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-200/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl animate-pulse delay-1000" />
+          <div className="absolute top-3/4 left-1/3 w-48 h-48 bg-pink-200/20 rounded-full blur-3xl animate-pulse delay-500" />
         </div>
       </div>
     );
@@ -388,7 +398,6 @@ const ToneTraitsApp = () => {
       >
         <div className="container mx-auto px-6 py-8">
           <div className="max-w-2xl mx-auto">
-            {/* Progress Bar */}
             <div className="bg-white/60 backdrop-blur-sm rounded-full p-1 mb-8">
               <div 
                 className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-full h-3 transition-all duration-500"
@@ -396,21 +405,18 @@ const ToneTraitsApp = () => {
               />
             </div>
 
-            {/* Progress Text */}
             <div className="mb-8 text-center">
               <p className="text-gray-600 text-lg mb-2" style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
-                {text.progress[language]} {currentQuestion + 1} {text.of[language]} {shuffledQuestions.length}
+                {TEXT.progress[language]} {currentQuestion + 1} {TEXT.of[language]} {shuffledQuestions.length}
               </p>
             </div>
 
-            {/* Question */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-200/50 mb-8">
               <h2 className="text-xl font-semibold text-gray-800 mb-8 leading-relaxed text-center"
-                  style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
+                style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
                 {currentQuestionData[language]}
               </h2>
 
-              {/* Rating Scale */}
               <div className={`grid grid-cols-7 gap-2 mb-6 ${language === 'he' ? 'rtl' : 'ltr'}`}>
                 {[1, 2, 3, 4, 5, 6, 7].map((rating) => (
                   <button
@@ -424,13 +430,12 @@ const ToneTraitsApp = () => {
                 ))}
               </div>
               
-              {/* Scale Labels */}
               <div className={`flex justify-between text-gray-500 text-sm ${language === 'he' ? 'rtl' : 'ltr'}`}>
                 <span style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
-                  {text.ratingLabels[language === 'he' ? 7 : 1][language]}
+                  {TEXT.ratingLabels[language === 'he' ? 7 : 1][language]}
                 </span>
                 <span style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
-                  {text.ratingLabels[language === 'he' ? 1 : 7][language]}
+                  {TEXT.ratingLabels[language === 'he' ? 1 : 7][language]}
                 </span>
               </div>
             </div>
@@ -442,8 +447,22 @@ const ToneTraitsApp = () => {
 
   // Results Screen
   if (currentScreen === 'results') {
-    const results = calculateResults();
-    const personality = personalityDescriptions[results.dominantDimension];
+    const results = calculateResults(responses);
+    if (!results.dominantDimension) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+          <p>{language === 'he' ? 'משהו השתבש בחישוב התוצאות.' : 'Something went wrong calculating results.'}</p>
+          <button
+            onClick={resetQuiz}
+            className="px-6 py-3 rounded-full border border-gray-300 hover:bg-gray-50"
+          >
+            {language === 'he' ? 'להתחיל מהתחלה' : 'Start over'}
+          </button>
+        </div>
+      );
+    }
+
+    const personality = PERSONALITY_DESCRIPTIONS[results.dominantDimension];
 
     return (
       <div 
@@ -453,46 +472,41 @@ const ToneTraitsApp = () => {
       >
         <div className="container mx-auto px-6 py-8">
           <div className="max-w-2xl mx-auto text-center">
-            
-            {/* Small Logo */}
             <div className="mb-8 flex justify-center">
               <ToneTraitsLogo size={0.8} />
             </div>
 
             <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center"
-                style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
-              {text.results[language]}
+              style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
+              {TEXT.results[language]}
             </h1>
             
-            {/* Results Card */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-200/50 mb-8">
               <p className="text-lg text-gray-600 mb-6 text-center"
-                 style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
-                {text.yourType[language]}
+                style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
+                {TEXT.yourType[language]}
               </p>
               
               <div className="flex justify-center mb-6">
                 <div className={`inline-block bg-gradient-to-r ${personality.color} text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg`}
-                     style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
+                  style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
                   {personality.name[language]}
                 </div>
               </div>
               
               <p className="text-lg text-gray-700 mb-6 leading-relaxed text-center"
-                 style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
+                style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
                 {personality.description[language]}
               </p>
               
-              {/* Big Five Connection */}
               <div className="bg-blue-50 rounded-xl p-4 mb-6">
                 <p className="text-sm text-blue-800 leading-relaxed text-center"
-                   style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
+                  style={{ fontFamily: 'Assistant, Arial, sans-serif' }}>
                   {personality.bigFiveLink[language]}
                 </p>
               </div>
             </div>
 
-            {/* Share Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-center">
               <button
                 onClick={() => shareResults('instagram')}
@@ -500,7 +514,7 @@ const ToneTraitsApp = () => {
                 style={{ fontFamily: 'Assistant, Arial, sans-serif' }}
               >
                 <Instagram size={20} />
-                {text.shareInstagram[language]}
+                {TEXT.shareInstagram[language]}
               </button>
               
               <button
@@ -509,7 +523,7 @@ const ToneTraitsApp = () => {
                 style={{ fontFamily: 'Assistant, Arial, sans-serif' }}
               >
                 <Facebook size={20} />
-                {text.shareFacebook[language]}
+                {TEXT.shareFacebook[language]}
               </button>
               
               <button
@@ -518,11 +532,10 @@ const ToneTraitsApp = () => {
                 style={{ fontFamily: 'Assistant, Arial, sans-serif' }}
               >
                 <MessageCircle size={20} />
-                {text.shareWhatsApp[language]}
+                {TEXT.shareWhatsApp[language]}
               </button>
             </div>
 
-            {/* Restart Button */}
             <div className="flex justify-center">
               <button
                 onClick={resetQuiz}
@@ -530,7 +543,7 @@ const ToneTraitsApp = () => {
                 style={{ fontFamily: 'Assistant, Arial, sans-serif' }}
               >
                 <RotateCcw size={20} />
-                {text.restartButton[language]}
+                {TEXT.restartButton[language]}
               </button>
             </div>
           </div>
